@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Main {
@@ -11,7 +12,7 @@ public class Main {
     static BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
     static int N;
     static List<Meeting> meetings;
-    static int answer = Integer.MIN_VALUE;
+    static int[] dp;
 
     public static void main(String[] args) throws IOException {
         N = Integer.parseInt(reader.readLine());
@@ -22,47 +23,55 @@ public class Main {
             meetings.add(new Meeting(Integer.parseInt(input[0]), Integer.parseInt(input[1])));
         }
 
-        recur(0, 0);
-        writer.write(String.valueOf(answer));
+        dp = new int[N + 1];
+        Arrays.fill(dp, -1);
+
+        writer.write(String.valueOf(recur(0)));
         writer.flush();
         writer.close();
     }
 
-    private static void recur(int index, int pay) {
-        if (index > N) {
-            return;
+    private static int recur(int index) {
+        if (index == N) {
+            return 0;
         }
 
-        if (index == N) {
-            answer = Math.max(pay, answer);
-            return;
+        if (index > N) {
+            return Integer.MIN_VALUE;
         }
 
         Meeting meeting = meetings.get(index);
 
-        // 상담을 할 수 있는 경우. 상담 종료일이 N일을 넘지 않도록 확인
-        if (index + meeting.getDay() <= N) {
-            recur(index + meeting.getDay(), pay + meeting.getPay());
+        // 이미 저장되었다면
+        if (dp[index] != -1) {
+            return dp[index];
         }
 
-        recur(index + 1, pay);
+        // 상담을 받거나, 안받거나, 그 중에서 더 많은 돈을 버는 경우를 내 DP 테이블에 저장
+        dp[index] = Math.max(
+                recur(index + meeting.getDay()) + meeting.getPay(), recur(index + 1)
+        );
+
+        return dp[index];
+    }
+
+    static class Meeting {
+        private final int day;
+        private final int pay;
+
+        public Meeting(final int day, final int pay) {
+            this.day = day;
+            this.pay = pay;
+        }
+
+        public int getDay() {
+            return day;
+        }
+
+        public int getPay() {
+            return pay;
+        }
     }
 }
 
-class Meeting{
-    private final int day;
-    private final int pay;
 
-    public Meeting(final int day, final int pay) {
-        this.day = day;
-        this.pay = pay;
-    }
-
-    public int getDay() {
-        return day;
-    }
-
-    public int getPay() {
-        return pay;
-    }
-}
